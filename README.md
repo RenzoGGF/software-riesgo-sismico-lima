@@ -16,6 +16,6 @@ Este aplicativo permite calcular rutas óptimas hacia zonas seguras en caso de s
 
 **📍 Modo de uso**
 
-- Ejecuta el .exe.
+- Descarga y ejecuta el .exe.
 - Haz clic en tu ubicación en el mapa.
 - El sistema calculará y trazará la ruta más segura al punto seguro más cercano.
