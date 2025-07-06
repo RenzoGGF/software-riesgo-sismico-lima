@@ -151,6 +151,14 @@ class MapViewFrame(tkinter.Frame):
 
     def on_map_click_route(self, coords):
         self.limpiar_mapa()
+        
+        # Restaurar el marcador del destino anterior si existe
+        if self.last_destination_info:
+            p = self.last_destination_info
+            marker = self.map_widget.set_marker(p["lat"], p["lon"], text=p["nombre"], text_color="#2E603A", marker_color_circle="#588157", marker_color_outside="#2E603A")
+            self.puntos_seguros_markers[(p["lat"], p["lon"])] = marker
+            self.last_destination_info = None
+
         self.origen_marker = self.map_widget.set_marker(coords[0], coords[1], text="Tu Ubicación")
         algo_name = self.algorithm_info[self.algorithm_choice]["name"]
         self.set_status_text(f"Calculando ruta con {algo_name} desde ({coords[0]:.4f}, {coords[1]:.4f})...")
@@ -214,7 +222,7 @@ class MapViewFrame(tkinter.Frame):
         if self.G_undirected is None: return
         try:
             start_time = time.time()
-            centrality = nx.betweenness_centrality(self.G_undirected, k=100, normalized=True, weight='weight')
+            centrality = nx.betweenness_centrality(self.G_undirected, k=200, normalized=True, weight='weight')
             
             nodos_criticos = sorted(centrality, key=centrality.get, reverse=True)[:50]
             end_time = time.time()
@@ -226,7 +234,11 @@ class MapViewFrame(tkinter.Frame):
             self.gui_queue.put((self.set_status_text, (f"Error al calcular puntos críticos: {e}",)))
 
     def dibujar_ruta(self, path_coords, destino_info, costo, calc_time):
-        self.limpiar_mapa()
+        # BUG FIX: Eliminar el marcador original del punto seguro antes de dibujar el nuevo.
+        dest_coords = (destino_info["lat"], destino_info["lon"])
+        if dest_coords in self.puntos_seguros_markers:
+            self.puntos_seguros_markers[dest_coords].delete()
+
         info = self.algorithm_info[self.algorithm_choice]
         path = self.map_widget.set_path(path_coords, color=info["color"], width=4)
         self.drawn_elements.append(path)
